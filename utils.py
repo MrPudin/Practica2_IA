@@ -1,4 +1,4 @@
-def read_csv(file_name):
+def read_csv(file_name, has_id: bool = False):
     table = []
     with open(file_name) as f:
         for i, line in enumerate(f):
@@ -7,8 +7,9 @@ def read_csv(file_name):
                 continue
             parsed = []
             for entry in line.split(","):
-                entry = _cast_to(entry)
-                parsed.append(entry)
+                parsed.append(_cast_to(entry))
+            if has_id:
+                parsed = parsed[1:]
             table.append(parsed)
     return table
 
