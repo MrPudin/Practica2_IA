@@ -1,9 +1,9 @@
-def read_csv(file_name):
+def read_csv(file_name, ignore_first=True):
     table = []
     with open(file_name) as f:
         for i, line in enumerate(f):
             line = line.strip()
-            if i == 0:
+            if i == 0 and ignore_first:
                 continue
             parsed = []
             for entry in line.split(","):

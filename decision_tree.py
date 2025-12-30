@@ -200,12 +200,27 @@ def main(args):
     rng = Random(args.seed)
 
     # Load the dataset
-    dataset = read_csv(args.dataset)
+    dataset = read_csv(args.dataset, ignore_first=True)
     observations, labels = split_observations_and_labels(dataset)
 
     # Split the dataset into training and test sets
     # NOTE: consider args.test_ratio and args.seed
     """YOUR CODE HERE"""
+    indices = list(range(len(observations)))
+    rng.shuffle(indices)
+
+    split_point = int(len(observations) * (1 - args.test_ratio))
+
+    train_obs = [observations[i] for i in indices[:split_point]]
+    train_labels = [labels[i] for i in indices[:split_point]]
+    test_obs = [observations[i] for i in indices[split_point:]]
+    test_labels = [labels[i] for i in indices[split_point:]]
+
+    print(f"Dataset loaded: {len(observations)} samples")
+    print(f"Training set: {len(train_obs)} samples")
+    print(f"Test set: {len(test_obs)} samples")
+    print(f"Number of features: {len(observations[0])}")
+    print(f"Classes: {set(labels)}\n")
 
     # Instantiate the decision tree classifier
     dec_tree = DecisionTreeClassifier(
@@ -214,6 +229,8 @@ def main(args):
 
     # Train the decision tree using the training data
     """YOUR CODE HERE"""
+    print("Tree Training:")
+    dec_tree.fit(train_obs, train_labels)
 
     # Print the tree structure
     print("Tree Structure:")
@@ -221,9 +238,15 @@ def main(args):
 
     # Predict over the test set
     """YOUR CODE HERE"""
+    predictions = dec_tree.predict(test_obs)
 
     # Evaluate these predictions using the accuracy score and print the information
     """YOUR CODE HERE"""
+    train_accuracy = dec_tree.score(train_obs, train_labels)
+    test_accuracy = dec_tree.score(test_obs, test_labels)
+    
+    print(f"Training Accuracy: {train_accuracy:.2%}")
+    print(f"Test Accuracy: {test_accuracy:.2%}")
 
 
 def parse_args():
