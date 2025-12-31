@@ -1,4 +1,6 @@
 import argparse
+import math
+from copy import deepcopy
 from random import Random
 from utils import read_csv
 
@@ -9,13 +11,78 @@ class KMeans:
         self.distance = distance
         self.rng = rng
 
-    def fit(self, observations):
-        """YOUR CODE HERE"""
-        self.centroids_ = []
-        self.distances_ = []
-        self.X_assignments_ = []
-        return self
+    def _distance(self, x, y):
+        """
+        Calculate the disatance between two vectors
+        """
+        if self.distance == "euclidean":
+            return math.sqrt(sum((xi - yi) ** 2 for xi, yi in zip(x, y)))
+        elif self.distance == "squared-euclidean":
+            return sum((xi - yi) ** 2 for xi, yi in zip(x, y))
+        else:
+            raise ValueError(
+                f"Unvalid distance parameter: '{self.distance}'. "
+                "Use 'euclidean' or 'squared-euclidean'."
+            )
 
+    def fit(self, observations):
+        n_samples = len(observations) # Number of points
+        n_features = len(observations[0]) # Numbher of point dimensions
+
+        # Initialize the centroids randomly from the dataset
+        self.centroids_ = self.rng.sample(observations, self.k)
+
+        # Kmeans algorythm iterations
+        while True:
+            old_centroids = deepcopy(self.centroids_)
+
+            self.X_assignments_ = []
+            self.distances_ = []
+
+            # Point assignation to the closest centroid
+            for x in observations:
+                distances_to_centroids = [
+                    self._distance(x, c) for c in self.centroids_
+                ]
+
+                closest_centroid = distances_to_centroids.index(
+                    min(distances_to_centroids)
+                )
+
+                self.X_assignments_.append(closest_centroid)
+                self.distances_.append(distances_to_centroids[closest_centroid])
+
+            # Recalculate centroids
+            new_centroids = []
+
+            for j in range(self.k):
+                cluster_points = [
+                    observations[i]
+                    for i in range(n_samples)
+                    if self.X_assignments_[i] == j
+                ]
+
+                # Empty cluster ---> Reinitialize centroid (randomly)
+                if not cluster_points:
+                    new_centroids.append(
+                        observations[self.rng.randrange(n_samples)]
+                    )
+                else:
+                    # Recalculate the centroid
+                    centroid = [
+                        sum(point[d] for point in cluster_points) / len(cluster_points)
+                        for d in range(n_features)
+                    ]
+                    new_centroids.append(centroid)
+
+            self.centroids_ = new_centroids
+
+            # Convergence check
+            if self.centroids_ == old_centroids:
+                break
+
+        return self
+    
 
 ###############################################
 #                 CLI Code                    #
