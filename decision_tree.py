@@ -117,13 +117,16 @@ class DecisionTreeClassifier:
                         p = len(s1_obs) / len(obs)
                         gain = current_score - p * self.scoref(s1_lab) - (1 - p) * self.scoref(s2_lab)
 
+                        if self.beta > 0:
+                            gain -= self.beta
+
                         if gain > best_gain:
                             best_gain = gain
                             best_criteria = (col, value)
                             best_sets = ((s1_obs, s1_lab), (s2_obs, s2_lab))
 
                 # Criterio beta (min_gain): split solo si gain > beta
-                if best_sets is not None and best_gain > self.beta:
+                if best_sets is not None and best_gain > 0:
                     node = Node.new_node(best_criteria[0], best_criteria[1], None, None)
 
                     # LIFO: meto false y luego true para construir true antes
