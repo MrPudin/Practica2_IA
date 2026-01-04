@@ -1,12 +1,16 @@
 from __future__ import annotations
 import argparse
+import re # Standard library for regular explressions
 from utils import read_sms, split_observations_and_labels
 from random import Random
 
 
 def tokenize_sms(message):
-    """YOUR CODE HERE"""
-    raise NotImplementedError("TODO")
+    # In order to homogenize data
+    message = message.lower()
+    # Tokenize words + ! and ? : free!!!? ---> ['free', '!', '!', '!', '?']
+    tokens = re.findall(r'\w+|[!?]', message)
+    return tokens
 
 
 class MultinomialNaiveBayesClassifier:
@@ -42,23 +46,31 @@ def main(args):
     messages, labels = read_sms(args.dataset)
 
     # Tokenize the messages
-    """YOUR CODE HERE"""
+    tokenized_messages = [tokenize_sms(m) for m in messages]
 
     # Split the dataset into training and test sets
     # NOTE: consider args.test_ratio and args.seed
-    """YOUR CODE HERE"""
+    data = list(zip(tokenized_messages, labels)) # Result: tuples --->   [(['go', 'until', 'point', '!'], 'ham'),  (['ok', 'just', 'joking', 'with', 'u'], 'ham')]
+    rng.shuffle(data)
+
+    split_idx = int(len(data) * (1 - args.test_ratio))
+    train_data, test_data = data[:split_idx], data[split_idx:]
+
+    train_observations, train_labels = zip(*train_data)
+    test_observations, test_labels = zip(*test_data)
 
     # Instantiate the decision tree classifier
-    mnb = MultinomialNaiveBayesClassifier()
+    mnb = MultinomialNaiveBayesClassifier(assumed_probability=args.assumed_probability)
 
     # Train the classifier using the training data
-    """YOUR CODE HERE"""
+    mnb.fit(train_labels, train_labels)
 
     # Predict over the test set
-    """YOUR CODE HERE"""
+    predictions = mnb.predict(test_observations)
 
     # Evaluate these predictions using the accuracy score and print the information
-    """YOUR CODE HERE"""
+    accuracy = mnb.score(test_observations, test_labels)
+    print(f"Accuracy: {accuracy*100:.2f}%")
 
 
 def parse_args():
