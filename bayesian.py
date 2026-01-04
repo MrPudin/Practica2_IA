@@ -33,8 +33,32 @@ class MultinomialNaiveBayesClassifier:
         return self
 
     def predict(self, observations):
-        """YOUR CODE HERE"""
-        raise NotImplementedError("TODO")
+        predictions = []
+        vocab_size = len(self.vocabulary)
+        
+        for tokens in observations:
+            class_probs = {}
+            for label in self.class_doc_counts:
+                # P(class)
+                prior = self.class_doc_counts[label] / self.total_docs
+                prob = prior  # empezamos con P(class)
+                
+                total_words = self.class_total_words[label]
+                word_counts = self.class_word_counts[label] # Dictionary associated with the class "label" containing the words appeared on all the docs from that class and their counters associated
+                
+                # Multiply P(word|class) for each word
+                for word in tokens:
+                    count = word_counts.get(word, 0) # Get the word counter data
+                    pwc = (count + self.assumed_probability) / (total_words + self.assumed_probability * vocab_size)
+                    prob *= pwc
+                
+                class_probs[label] = prob
+            
+            # Choose the class with higher probability
+            predicted_label = max(class_probs, key=class_probs.get)
+            predictions.append(predicted_label)
+        
+        return predictions
 
     def score(self, data, labels) -> float:
         predicted = self.predict(data)
