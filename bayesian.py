@@ -1,8 +1,9 @@
 from __future__ import annotations
 import argparse
-import re # Standard library for regular explressions
+import re # Standard library for regular expressions
 from utils import read_sms, split_observations_and_labels
 from random import Random
+from collections import defaultdict, Counter
 
 
 def tokenize_sms(message):
@@ -16,9 +17,19 @@ def tokenize_sms(message):
 class MultinomialNaiveBayesClassifier:
     def __init__(self, assumed_probability=1):
         self.assumed_probability = assumed_probability
+        self.class_doc_counts = defaultdict(int)          # Number of docs per class
+        self.class_word_counts = defaultdict(Counter)     # Number of times that a word appears per class
+        self.vocabulary = set()                           # All the words without rep
+        self.class_total_words = defaultdict(int)         # Total words per class
+        self.total_docs = 0                               # Total docs
 
     def fit(self, observations, labels):
-        """YOUR CODE HERE"""
+        for tokens, label in zip(observations, labels):
+            self.class_doc_counts[label] += 1
+            self.total_docs += 1
+            self.class_word_counts[label].update(tokens)
+            self.class_total_words[label] += len(tokens)
+            self.vocabulary.update(tokens)
         return self
 
     def predict(self, observations):
