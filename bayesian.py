@@ -1,6 +1,7 @@
 from __future__ import annotations
 import argparse
 import re # Standard library for regular expressions
+from math import log
 from utils import read_sms, split_observations_and_labels
 from random import Random
 from collections import defaultdict, Counter
@@ -50,7 +51,7 @@ class MultinomialNaiveBayesClassifier:
                 for word in tokens:
                     count = word_counts.get(word, 0) # Get the word counter data
                     pwc = (count + self.assumed_probability) / (total_words + self.assumed_probability * vocab_size)
-                    prob *= pwc
+                    score += log(pwc)
                 
                 class_probs[label] = prob
             
