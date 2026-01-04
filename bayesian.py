@@ -1,6 +1,7 @@
 from __future__ import annotations
 import argparse
 import re # Standard library for regular expressions
+from math import log
 from utils import read_sms, split_observations_and_labels
 from random import Random
 from collections import defaultdict, Counter
@@ -41,7 +42,7 @@ class MultinomialNaiveBayesClassifier:
             for label in self.class_doc_counts:
                 # P(class)
                 prior = self.class_doc_counts[label] / self.total_docs
-                prob = prior  # empezamos con P(class)
+                score = log(prior)  # empezamos con P(class)
                 
                 total_words = self.class_total_words[label]
                 word_counts = self.class_word_counts[label] # Dictionary associated with the class "label" containing the words appeared on all the docs from that class and their counters associated
@@ -50,7 +51,7 @@ class MultinomialNaiveBayesClassifier:
                 for word in tokens:
                     count = word_counts.get(word, 0) # Get the word counter data
                     pwc = (count + self.assumed_probability) / (total_words + self.assumed_probability * vocab_size)
-                    prob *= pwc
+                    score += log(pwc)
                 
                 class_probs[label] = prob
             
@@ -98,7 +99,7 @@ def main(args):
     mnb = MultinomialNaiveBayesClassifier(assumed_probability=args.assumed_probability)
 
     # Train the classifier using the training data
-    mnb.fit(train_labels, train_labels)
+    mnb.fit(train_observations, train_labels)
 
     # Predict over the test set
     predictions = mnb.predict(test_observations)
