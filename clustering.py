@@ -109,24 +109,45 @@ class KMeans:
 
 
 def main(args):
-    # Set the random generator
+    # Generador aleatorio
     rng = Random(args.seed)
 
-    # Load the dataset
-    dataset = read_csv(args.dataset)
+    # Cargar dataset (ignorar primera columna si es identificador)
+    dataset = read_csv(args.dataset, ignore_first=True, ignore_first_col=True)
+    
+    print(f"Dataset loaded: {len(dataset)} points")
+    print(f"Dimensions: {len(dataset[0]) if dataset else 0}\n")
 
-    # Instantiate KMeans
-    kmeans = KMeans(k=args.k, distance=args.distance, rng=rng, n_restarts=args.n_restarts)
+    # Crear instancia de KMeans
+    kmeans = KMeans(
+        k=args.k,
+        distance=args.distance,
+        n_restarts=args.n_restarts,
+        rng=rng
+    )
 
-    # Train the clustering model
+    # Entrenar el modelo
+    print(f"K-Means with k={args.k}, distance={args.distance}, n_restarts={args.n_restarts}")
     kmeans.fit(dataset)
 
-    # Print some metrics
-    print("Distances:", kmeans.distances_)
-    print("Sum of distances:", sum(kmeans.distances_))
-    print("Centroid positions:", kmeans.centroids_)
-    print("Centroids assignments:", kmeans.X_assignments_)
+    # Métricas
+    sum_distances = sum(kmeans.distances_)
+    print(f"Sum of distances: {sum_distances:.4f}")
+    print(f"Average distance to centroid: {sum_distances / len(dataset):.4f}\n")
 
+    # Información por cluster
+    print("Cluster sizes:")
+    for i in range(args.k):
+        cluster_size = kmeans.X_assignments_.count(i)
+        percentage = (cluster_size / len(dataset)) * 100
+        print(f"  Cluster {i}: {cluster_size} points ({percentage:.1f}%)")
+    
+    print(f"\nCentroid positions:")
+    for i, centroid in enumerate(kmeans.centroids_):
+        centroid_str = ", ".join(f"{coord:.4f}" for coord in centroid[:5])
+        if len(centroid) > 5:
+            centroid_str += ", ..."
+        print(f"  Centroid {i}: [{centroid_str}]")
 
 def parse_args():
     parser = argparse.ArgumentParser()
